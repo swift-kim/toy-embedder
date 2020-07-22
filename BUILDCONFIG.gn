@@ -1,0 +1,4 @@
+set_default_toolchain("//:clang")
+set_defaults("shared_library") {
+  configs = [ "//:compiler" ]
+}

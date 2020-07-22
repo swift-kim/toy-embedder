@@ -1,0 +1,22 @@
+shared_library("flutter_embedder") {
+  include_dirs = [
+    root_out_dir
+  ]
+
+  lib_dirs = [
+    root_out_dir
+  ]
+
+  sources = [
+    "flutter_application.h",
+    "flutter_application.cc",
+    "utils.cc",
+    "utils.h",
+    "tizen_display.h",
+    "tizen_display.cc",
+  ]
+  
+  libs = [
+    "flutter_engine"
+  ]
+}
