@@ -10,13 +10,16 @@ shared_library("flutter_embedder") {
   sources = [
     "flutter_application.h",
     "flutter_application.cc",
-    "utils.cc",
-    "utils.h",
     "tizen_display.h",
     "tizen_display.cc",
+    "vsync_handler.h",
+    "vsync_handler.cc",
+    "utils.h",
+    "utils.cc",
   ]
   
   libs = [
-    "flutter_engine"
+    "flutter_engine",
+    "tdm-client"
   ]
 }

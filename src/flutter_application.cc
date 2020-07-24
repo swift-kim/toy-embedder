@@ -22,7 +22,8 @@ namespace flutter
       std::string icu_data_path,
       const std::vector<std::string> &command_line_args,
       RenderDelegate &render_delegate)
-      : render_delegate_(render_delegate)
+      : render_delegate_(render_delegate),
+        vsync_handler_(std::make_unique<VsyncHandler>())
   {
     if (!FileExistsAtPath(bundle_path))
     {
@@ -59,7 +60,6 @@ namespace flutter
     };
 
     std::vector<const char *> command_line_args_c;
-
     for (const auto &arg : command_line_args)
     {
       command_line_args_c.push_back(arg.c_str());
@@ -71,32 +71,25 @@ namespace flutter
         .icu_data_path = icu_data_path.c_str(),
         .command_line_argc = static_cast<int>(command_line_args_c.size()),
         .command_line_argv = command_line_args_c.data(),
+        .vsync_callback = [](void *data, intptr_t baton) -> void {
+          reinterpret_cast<FlutterApplication *>(data)->vsync_handler_->AsyncWaitForVsync(baton);
+        },
     };
 
     auto result = FlutterEngineRun(FLUTTER_ENGINE_VERSION, &config, &args, this, &engine_);
-
     if (result != kSuccess)
     {
       LogE("Could not start the Flutter engine.");
       return;
     }
 
+    vsync_handler_->AsyncWaitForRunEngineSuccess(engine_);
+
+    pointer_event_handlers_.push_back(ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, OnPointerEvent, this));
+    pointer_event_handlers_.push_back(ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP, OnPointerEvent, this));
+    pointer_event_handlers_.push_back(ecore_event_handler_add(ECORE_EVENT_MOUSE_MOVE, OnPointerEvent, this));
+
     valid_ = true;
-  }
-
-  FlutterApplication::~FlutterApplication()
-  {
-    if (engine_ == nullptr)
-    {
-      return;
-    }
-
-    auto result = FlutterEngineShutdown(engine_);
-
-    if (result != kSuccess)
-    {
-      LogE("Could not shutdown the Flutter engine.");
-    }
   }
 
   bool FlutterApplication::IsValid() const { return valid_; }
@@ -107,67 +100,67 @@ namespace flutter
     event.struct_size = sizeof(event);
     event.width = width;
     event.height = height;
-    event.pixel_ratio = 1.0;
+    event.pixel_ratio = 1.5;
     return FlutterEngineSendWindowMetricsEvent(engine_, &event) == kSuccess;
   }
 
-  void FlutterApplication::ProcessEvents()
-  {
-    __FlutterEngineFlushPendingTasksNow();
-  }
-
-  bool FlutterApplication::SendPointerEvent(int button, int x, int y)
-  {
-    if (!valid_)
-    {
-      LogE("Pointer events on an invalid application.");
-      return false;
-    }
-
-    // Simple hover event. Nothing to do.
-    if (last_button_ == 0 && button == 0)
-    {
-      return true;
-    }
-
-    FlutterPointerPhase phase = kCancel;
-
-    if (last_button_ == 0 && button != 0)
-    {
-      phase = kDown;
-    }
-    else if (last_button_ == button)
-    {
-      phase = kMove;
-    }
-    else
-    {
-      phase = kUp;
-    }
-
-    last_button_ = button;
-    return SendFlutterPointerEvent(phase, x, y);
-  }
-
-  bool FlutterApplication::SendFlutterPointerEvent(FlutterPointerPhase phase, double x, double y)
+  void FlutterApplication::SendFlutterPointerEvent(FlutterPointerPhase phase, double x, double y, size_t timestamp)
   {
     FlutterPointerEvent event = {};
     event.struct_size = sizeof(event);
     event.phase = phase;
     event.x = x;
     event.y = y;
-    event.timestamp =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::high_resolution_clock::now().time_since_epoch())
-            .count();
-    return FlutterEngineSendPointerEvent(engine_, &event, 1) == kSuccess;
+    event.timestamp = timestamp;
+    FlutterEngineSendPointerEvent(engine_, &event, 1);
   }
 
-  void FlutterApplication::ReadInputEvents()
+  Eina_Bool FlutterApplication::OnPointerEvent(void *data, int type, void *event)
   {
-    // TODO(chinmaygarde): Fill this in for touch screen and not just devices that
-    // fake mice.
-    ::sleep(INT_MAX);
+    auto *app = reinterpret_cast<FlutterApplication *>(data);
+
+    if (type == ECORE_EVENT_MOUSE_BUTTON_DOWN)
+    {
+      app->pointer_state_ = true;
+
+      auto *buttonEvent = reinterpret_cast<Ecore_Event_Mouse_Button *>(event);
+      app->SendFlutterPointerEvent(kDown, buttonEvent->x, buttonEvent->y, buttonEvent->timestamp);
+    }
+    else if (type == ECORE_EVENT_MOUSE_BUTTON_UP)
+    {
+      app->pointer_state_ = false;
+
+      auto *buttonEvent = reinterpret_cast<Ecore_Event_Mouse_Button *>(event);
+      app->SendFlutterPointerEvent(kUp, buttonEvent->x, buttonEvent->y, buttonEvent->timestamp);
+    }
+    else if (type == ECORE_EVENT_MOUSE_MOVE)
+    {
+      if (app->pointer_state_)
+      {
+        auto *moveEvent = reinterpret_cast<Ecore_Event_Mouse_Move *>(event);
+        app->SendFlutterPointerEvent(kMove, moveEvent->x, moveEvent->y, moveEvent->timestamp);
+      }
+    }
+
+    return ECORE_CALLBACK_PASS_ON;
+  }
+
+  FlutterApplication::~FlutterApplication()
+  {
+    for (auto handler : pointer_event_handlers_)
+    {
+      ecore_event_handler_del(handler);
+    }
+    pointer_event_handlers_.clear();
+
+    if (engine_)
+    {
+      auto result = FlutterEngineShutdown(engine_);
+      if (result != kSuccess)
+      {
+        LogE("Could not shutdown the Flutter engine.");
+      }
+    }
   }
 
 } // namespace flutter

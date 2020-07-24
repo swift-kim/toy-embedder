@@ -5,7 +5,6 @@
 #pragma once
 
 #include <EGL/egl.h>
-
 #define EFL_BETA_API_SUPPORT
 #include <Ecore_Wl2.h>
 

@@ -7,6 +7,11 @@
 #include <flutter_embedder.h>
 #include <functional>
 #include <vector>
+#define EFL_BETA_API_SUPPORT
+#include <Ecore_Wl2.h>
+#include <Ecore_Input.h>
+
+#include "vsync_handler.h"
 
 namespace flutter
 {
@@ -28,20 +33,22 @@ namespace flutter
                        std::string icu_data_path,
                        const std::vector<std::string> &args,
                        RenderDelegate &render_delegate);
-    ~FlutterApplication();
+    virtual ~FlutterApplication();
     bool IsValid() const;
-    void ProcessEvents();
     bool SetWindowSize(size_t width, size_t height);
-    bool SendPointerEvent(int button, int x, int y);
-    void ReadInputEvents();
 
   private:
     bool valid_;
     RenderDelegate &render_delegate_;
     FlutterEngine engine_ = nullptr;
-    int last_button_ = 0;
 
-    bool SendFlutterPointerEvent(FlutterPointerPhase phase, double x, double y);
+    std::unique_ptr<VsyncHandler> vsync_handler_;
+
+    std::vector<Ecore_Event_Handler *> pointer_event_handlers_;
+    bool pointer_state_ = false;
+
+    void SendFlutterPointerEvent(FlutterPointerPhase phase, double x, double y, size_t timestamp);
+    static Eina_Bool OnPointerEvent(void *data, int type, void *event);
 
     // Disallow copy and assign operations.
     FlutterApplication(const FlutterApplication &) = delete;
