@@ -16,7 +16,7 @@ namespace flutter
   {
   public:
     TizenDisplay(uint32_t display_width, uint32_t display_height);
-    ~TizenDisplay();
+    virtual ~TizenDisplay();
     bool IsValid() const;
     size_t GetWidth() const;
     size_t GetHeight() const;

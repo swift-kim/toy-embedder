@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "tizen_display.h"
-#include "utils.h"
+#include "logger.h"
 
 namespace flutter
 {

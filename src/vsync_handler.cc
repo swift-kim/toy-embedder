@@ -15,7 +15,7 @@
  */
 
 #include "vsync_handler.h"
-#include "utils.h"
+#include "logger.h"
 
 VsyncHandler::VsyncHandler()
 {

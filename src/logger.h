@@ -19,11 +19,3 @@
 #define LogI(fmt, args...) LOG_(DLOG_INFO, fmt, ##args)
 #define LogW(fmt, args...) LOG_(DLOG_WARN, fmt, ##args)
 #define LogE(fmt, args...) LOG_(DLOG_ERROR, fmt, ##args)
-
-namespace flutter
-{
-  std::string GetExecutableName();
-  std::string GetExecutableDirectory();
-  bool FileExistsAtPath(const std::string &path);
-  bool FlutterAssetBundleIsValid(const std::string &bundle_path);
-} // namespace flutter

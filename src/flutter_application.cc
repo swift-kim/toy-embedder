@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 
-#include "utils.h"
+#include "logger.h"
 
 namespace flutter
 {
@@ -25,13 +25,13 @@ namespace flutter
       : render_delegate_(render_delegate),
         vsync_handler_(std::make_unique<VsyncHandler>())
   {
-    if (!FileExistsAtPath(bundle_path))
+    if (::access(bundle_path.c_str(), R_OK) != 0)
     {
       LogE("Could not find Flutter asset bundle.");
       return;
     }
 
-    if (!FileExistsAtPath(icu_data_path))
+    if (::access(icu_data_path.c_str(), R_OK) != 0)
     {
       LogE("Could not find ICU data.");
       return;

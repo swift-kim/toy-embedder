@@ -14,8 +14,7 @@ shared_library("flutter_embedder") {
     "tizen_display.cc",
     "vsync_handler.h",
     "vsync_handler.cc",
-    "utils.h",
-    "utils.cc",
+    "logger.h"
   ]
   
   libs = [
