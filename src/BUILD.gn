@@ -1,6 +1,7 @@
 shared_library("flutter_embedder") {
   include_dirs = [
-    root_out_dir
+    root_out_dir,
+    "public"
   ]
 
   lib_dirs = [
@@ -8,6 +9,8 @@ shared_library("flutter_embedder") {
   ]
 
   sources = [
+    "flutter_tizen.h",
+    "flutter_tizen.cc",
     "flutter_application.h",
     "flutter_application.cc",
     "tizen_display.h",
