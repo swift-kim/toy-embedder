@@ -3,23 +3,28 @@
 ## Prerequisites
 
 - Build artifacts (engine, embedder)
+- Linux and Windows hosts
 - Tizen device (Tizen 5.5 or above)
   - Wearable: Fully supported
   - TV: Not supported
-- Flutter SDK
+- Flutter SDK for Linux
   - https://flutter.dev/docs/get-started/install/linux
-  - Enable the Linux Desktop support
-    - `flutter channel dev` (set to dev channel)
-    - `flutter config --enable-linux-desktop`
-    - `flutter doctor` (check if there are any missing dependencies)
-- Visual Studio
+- Visual Studio (Windows)
 - Tizen SDK and Visual Studio Tools for Tizen
   - https://docs.tizen.org/application/vstools/install
 
 ## How to use
 
-1. Download sample app code from [flutter/samples](https://github.com/flutter/samples.git).
-2. Choose one of the samples and build app and app bundle.
+1. Enable Linux Desktop support for the Flutter SDK.
+
+   ```bash
+   flutter channel dev # set to dev channel
+   flutter config --enable-linux-desktop
+   flutter doctor # check if there are any missing dependencies
+   ```
+
+2. Download sample app code from [flutter/samples](https://github.com/flutter/samples.git).
+3. Choose one of the samples and build app with bundle.
 
    ```bash
    cd jsonexample
@@ -28,13 +33,14 @@
    flutter build linux
    ```
 
-3. Generate AOT compiled code (Release mode).
+4. Generate AOT compiled code (Release mode).
 
    ```bash
    mkdir -p build/linux/aot
 
    # Generate app.dill
-   <Flutter SDK root>/bin/cache/dart-sdk/bin/dart <Flutter SDK root>/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+   <Flutter SDK root>/bin/cache/dart-sdk/bin/dart \
+   <Flutter SDK root>/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
    --sdk-root <Flutter SDK root>/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/ \
    --target=flutter \
    -Ddart.developer.causal_async_stacks=true \
@@ -60,7 +66,7 @@
    build/linux/aot/app.dill
    ```
 
-4. Copy files to corresponding directories. (Replace the files that I already added.)
+5. Copy files to corresponding directories. (Replace the files that I provided.)
    - From `samples/jsonexample`
      - `build/linux/aot/libapp.so` → `dotnet-host/lib/armel`
      - `build/flutter_assets/*` → `dotnet-host/res/flutter_assets`
@@ -68,5 +74,5 @@
      - `out/icudtl.dat` → `dotnet-host/res`
      - `out/libflutter_engine.so` → `dotnet-host/lib/armel`
      - `out/libflutter_embedder.so` → `dotnet-host/lib/armel`
-5. Open `dotnet-host/FlutterApplication.sln` in Visual Studio.
-6. Build and run.
+6. Open `dotnet-host/FlutterApplication.sln` in Visual Studio.
+7. Build and run.
