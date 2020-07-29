@@ -22,6 +22,14 @@ shared_library("flutter_embedder") {
   
   libs = [
     "flutter_engine",
-    "tdm-client"
+    "pthread",
+    "tdm-client",
+    "wayland-client",
+    "ecore",
+    "ecore_wl2",
+    "ecore_input",
+    "GLESv2",
+    "EGL",
+    "dlog",
   ]
 }

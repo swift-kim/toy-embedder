@@ -28,8 +28,10 @@ struct FlutterApplicationState
 
 FLUTTER_EXPORT FlutterApplicationRef
 RunFlutterApplication(
-    const FlutterDesktopSize &size,
-    const FlutterDesktopEngineProperties &engine_properties)
+    const FlutterDesktopSize size,
+    const FlutterDesktopEngineProperties engine_properties,
+    const char **switches,
+    size_t switches_count)
 {
   auto state = std::make_unique<FlutterApplicationState>();
 
@@ -41,9 +43,9 @@ RunFlutterApplication(
   }
 
   std::vector<std::string> args;
-  for (int i = 0; i < engine_properties.switches_count; i++)
+  for (size_t i = 0; i < switches_count; i++)
   {
-    args.push_back(engine_properties.switches[i]);
+    args.push_back(switches[i]);
   }
 
   state->application = std::make_unique<flutter::FlutterApplication>(

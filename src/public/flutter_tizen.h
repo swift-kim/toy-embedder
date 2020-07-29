@@ -47,18 +47,18 @@ extern "C"
     // This can either be an absolute path or a path relative to the directory
     // containing the executable.
     const char *icu_data_path;
-    // The switches to pass to the Flutter engine.
-    //
-    // See: https://github.com/flutter/engine/blob/master/shell/common/switches.h
-    // for details. Not all arguments will apply to desktop.
-    const char **switches;
-    // The number of elements in |switches|.
-    size_t switches_count;
   } FlutterDesktopEngineProperties;
 
   FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
-      const FlutterDesktopSize &size,
-      const FlutterDesktopEngineProperties &engine_properties);
+      const FlutterDesktopSize size,
+      const FlutterDesktopEngineProperties engine_properties,
+      // The switches to pass to the Flutter engine.
+      //
+      // See: https://github.com/flutter/engine/blob/master/shell/common/switches.h
+      // for details. Not all arguments will apply.
+      const char **switches,
+      // The number of elements in |switches|.
+      size_t switches_count);
 
   // FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application);
 
