@@ -4,7 +4,7 @@ A minimal Flutter embedder implementation for Tizen inspired by [flutter_from_sc
 
 Only the following features are supported:
 
-- Display a Flutter application on the screen
+- Render on the display
 - Process touch inputs
 
 ## How to use
@@ -19,4 +19,4 @@ Only the following features are supported:
 
 5. Run `ninja -C out`. If successful, `libflutter_embedder.so` is generated in the `out` directory.
 
-6. (TBD) Using [`flutter_tizen.h`](src/public/flutter_tizen.h) and the Tizen SDK, create an application wrapper to run a Flutter application.
+6. See [`test`](test) to run a sample application with `libflutter_embedder.so`.
