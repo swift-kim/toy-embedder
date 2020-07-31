@@ -2,9 +2,9 @@
 
 A minimal Flutter embedder implementation for Tizen inspired by [flutter_from_scratch](https://github.com/chinmaygarde/flutter_from_scratch).
 
-Only the following features are supported:
+The following features are supported as of now:
 
-- Render on the display
+- Render to display
 - Process touch inputs
 
 ## How to use

@@ -3,15 +3,15 @@
 ## Prerequisites
 
 - Build artifacts (engine, embedder)
-- Linux and Windows hosts
 - Tizen device (Tizen 5.5 or above)
   - Wearable: Fully supported
   - TV: Not supported
 - Flutter SDK for Linux
   - https://flutter.dev/docs/get-started/install/linux
-- Visual Studio (Windows)
-- Tizen SDK and Visual Studio Tools for Tizen
-  - https://docs.tizen.org/application/vstools/install
+- Tizen SDK and IDE
+  - [Visual Studio](https://docs.tizen.org/application/vstools/install) (recommended)
+  - [Visual Studio Code](https://docs.tizen.org/application/vscode-ext/dotnet)
+  - [Visual Studio for Mac](https://docs.tizen.org/application/vstools-mac/overview)
 
 ## How to use
 
@@ -24,6 +24,7 @@
    ```
 
 2. Download sample app code from [flutter/samples](https://github.com/flutter/samples.git).
+
 3. Choose one of the samples and build app with bundle.
 
    ```bash
@@ -74,5 +75,8 @@
      - `out/icudtl.dat` → `dotnet-host/res`
      - `out/libflutter_engine.so` → `dotnet-host/lib/armel`
      - `out/libflutter_embedder.so` → `dotnet-host/lib/armel`
+
 6. Open `dotnet-host/FlutterApplication.sln` in Visual Studio.
+   - The native (C/C++) host will be provided later.
+
 7. Build and run.
