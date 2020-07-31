@@ -27,14 +27,14 @@ extern "C"
 {
 #endif
 
+  typedef struct FlutterApplicationState* FlutterApplicationRef;
+
   // Properties representing a generic rectangular size.
   typedef struct
   {
     int32_t width;
     int32_t height;
   } FlutterDesktopSize;
-
-  typedef struct FlutterApplicationState *FlutterApplicationRef;
 
   // Properties for configuring a Flutter engine instance.
   typedef struct
@@ -50,17 +50,21 @@ extern "C"
   } FlutterDesktopEngineProperties;
 
   FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
-      const FlutterDesktopSize size,
-      const FlutterDesktopEngineProperties engine_properties,
+      const FlutterDesktopSize &size,
+      const FlutterDesktopEngineProperties &engine_properties,
       // The switches to pass to the Flutter engine.
       //
       // See: https://github.com/flutter/engine/blob/master/shell/common/switches.h
       // for details. Not all arguments will apply.
+      //
+      // There's no trivial way of marshaling a native struct containing a string
+      // array into a managed struct in C#. Therefore, the switches should be
+      // directly passed as argument without wrapping with a struct.
       const char **switches,
       // The number of elements in |switches|.
       size_t switches_count);
 
-  // FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application);
+  FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application);
 
 #if defined(__cplusplus)
 } // extern "C"

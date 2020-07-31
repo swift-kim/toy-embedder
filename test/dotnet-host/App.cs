@@ -1,4 +1,20 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2020 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -9,6 +25,9 @@ namespace FlutterApplication
 {
     internal class App : CoreUIApplication
     {
+        protected IntPtr /*FlutterApplicationRef*/ Instance = IntPtr.Zero;
+
+        #region flutter_tizen.h
         [StructLayout(LayoutKind.Sequential)]
         internal struct FlutterDesktopSize
         {
@@ -23,20 +42,21 @@ namespace FlutterApplication
             public string icu_data_path;
         }
 
-        // libflutter_engine.so is needed by libflutter_embedder.so.
-        // By default, the loader cannot locate libflutter_engine.so because it's not in LD_LIBRARY_PATH.
-        // A call to libflutter_engine.so must be made to make sure the library is loaded by CLR.
-        [DllImport("flutter_engine.so")]
-        internal static extern bool FlutterEngineRunsAOTCompiledDartCode();
-
-        // There's no clear way to marshal a struct containing a string array into a C struct.
-        // Therefore, we directly pass an array of switches to the embedder without wrapping it as a struct.
         [DllImport("flutter_embedder.so")]
         internal static extern IntPtr RunFlutterApplication(
-            FlutterDesktopSize size,
-            FlutterDesktopEngineProperties engine_properties,
+            IntPtr /*FlutterDesktopSize*/ size,
+            IntPtr /*FlutterDesktopEngineProperties*/ engine_properties,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] string[] switches,
             uint switches_count);
+
+        [DllImport("flutter_embedder.so")]
+        internal static extern IntPtr StopFlutterApplication(IntPtr /*FlutterApplicationRef*/ application);
+        #endregion
+
+        #region flutter_embedder.h
+        [DllImport("flutter_engine.so")]
+        internal static extern bool FlutterEngineRunsAOTCompiledDartCode();
+        #endregion
 
         protected override void OnCreate()
         {
@@ -88,7 +108,41 @@ namespace FlutterApplication
                 icu_data_path = icuDataPath,
             };
 
-            _ = RunFlutterApplication(size, properties, args.ToArray(), (uint)args.Count);
+            var pSize = Marshal.AllocHGlobal(Marshal.SizeOf(size));
+            var pProperties = Marshal.AllocHGlobal(Marshal.SizeOf(properties));
+            Marshal.StructureToPtr<FlutterDesktopSize>(size, pSize, false);
+            Marshal.StructureToPtr<FlutterDesktopEngineProperties>(properties, pProperties, false);
+
+            try
+            {
+                Instance = RunFlutterApplication(pSize, pProperties, args.ToArray(), (uint)args.Count);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Could not start the Flutter application: " + ex);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(pSize);
+                Marshal.FreeHGlobal(pProperties);
+            }
+        }
+
+        protected override void OnTerminate()
+        {
+            base.OnTerminate();
+
+            try
+            {
+                if (Instance != IntPtr.Zero)
+                {
+                    StopFlutterApplication(Instance);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Could not stop the Flutter application: " + ex);
+            }
         }
 
         static void Main(string[] args)

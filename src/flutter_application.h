@@ -31,7 +31,7 @@ namespace flutter
 
     FlutterApplication(std::string bundle_path,
                        std::string icu_data_path,
-                       const std::vector<std::string> &args,
+                       const std::vector<const char*> &args,
                        RenderDelegate &render_delegate);
     virtual ~FlutterApplication();
     bool IsValid() const;

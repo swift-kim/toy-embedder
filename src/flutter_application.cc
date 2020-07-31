@@ -20,7 +20,7 @@ namespace flutter
   FlutterApplication::FlutterApplication(
       std::string bundle_path,
       std::string icu_data_path,
-      const std::vector<std::string> &command_line_args,
+      const std::vector<const char*> &command_line_args,
       RenderDelegate &render_delegate)
       : render_delegate_(render_delegate),
         vsync_handler_(std::make_unique<VsyncHandler>())
@@ -59,18 +59,12 @@ namespace flutter
       return reinterpret_cast<FlutterApplication *>(data)->render_delegate_.GetProcAddress(name);
     };
 
-    std::vector<const char *> command_line_args_c;
-    for (const auto &arg : command_line_args)
-    {
-      command_line_args_c.push_back(arg.c_str());
-    }
-
     FlutterProjectArgs args = {
         .struct_size = sizeof(FlutterProjectArgs),
         .assets_path = bundle_path.c_str(),
         .icu_data_path = icu_data_path.c_str(),
-        .command_line_argc = static_cast<int>(command_line_args_c.size()),
-        .command_line_argv = command_line_args_c.data(),
+        .command_line_argc = static_cast<int>(command_line_args.size()),
+        .command_line_argv = command_line_args.data(),
         .vsync_callback = [](void *data, intptr_t baton) -> void {
           reinterpret_cast<FlutterApplication *>(data)->vsync_handler_->AsyncWaitForVsync(baton);
         },
@@ -100,7 +94,7 @@ namespace flutter
     event.struct_size = sizeof(event);
     event.width = width;
     event.height = height;
-    event.pixel_ratio = 1.5;
+    event.pixel_ratio = 1.5; // screen density
     return FlutterEngineSendWindowMetricsEvent(engine_, &event) == kSuccess;
   }
 

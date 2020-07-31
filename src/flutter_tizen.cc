@@ -21,15 +21,13 @@
 
 struct FlutterApplicationState
 {
-  // The handle to the Flutter application instance.
   std::unique_ptr<flutter::TizenDisplay> display;
   std::unique_ptr<flutter::FlutterApplication> application;
 };
 
-FLUTTER_EXPORT FlutterApplicationRef
-RunFlutterApplication(
-    const FlutterDesktopSize size,
-    const FlutterDesktopEngineProperties engine_properties,
+FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
+    const FlutterDesktopSize &size,
+    const FlutterDesktopEngineProperties &engine_properties,
     const char **switches,
     size_t switches_count)
 {
@@ -42,7 +40,7 @@ RunFlutterApplication(
     return nullptr;
   }
 
-  std::vector<std::string> args;
+  std::vector<const char*> args;
   for (size_t i = 0; i < switches_count; i++)
   {
     args.push_back(switches[i]);
@@ -67,4 +65,10 @@ RunFlutterApplication(
   }
 
   return state.release();
+}
+
+FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application)
+{
+  // Not implemented
+  return true;
 }
