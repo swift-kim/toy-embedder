@@ -69,6 +69,18 @@ FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
 
 FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application)
 {
-  // Not implemented
+  if (!application)
+    return false;
+
+  if (application->display)
+  {
+    application->display.reset();
+  }
+  if (application->application)
+  {
+    application->application.reset();
+  }
+  delete application;
+
   return true;
 }

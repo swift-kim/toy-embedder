@@ -22,6 +22,9 @@ toolchain("clang") {
     "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/6.2.1/include",
     "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/6.2.1/include/c++",
     "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/6.2.1/include/c++/armv7l-tizen-linux-gnueabi",
+    "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/9.2.0/include",
+    "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/9.2.0/include/c++",
+    "/usr/lib/gcc/armv7l-tizen-linux-gnueabi/9.2.0/include/c++/armv7l-tizen-linux-gnueabi",
     "/usr/include/dlog",
     "/usr/include/ecore-wl2-1",
     "/usr/include/ecore-1",
@@ -88,7 +91,7 @@ toolchain("clang") {
     outfile = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     rspfile = "{{output}}.rsp"
     rspfile_content = "{{inputs}}"
-    rpath = "-Wl,-rpath,."
+    rpath = "-Wl,-rpath,'\$ORIGIN'"
     command = "$ld -o $outfile $target_triple_command $sysroot_command $extra_system_lib_dirs_string $rpath -shared {{ldflags}} {{solibs}} {{libs}} @$rspfile"
     description = "$pretty_link_prefix Shared Library: {{output}}"
     outputs = [
