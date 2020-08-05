@@ -15,26 +15,17 @@
 
 ## How to use
 
-1. Enable Linux Desktop support for the Flutter SDK.
+1. Download sample app code from [flutter/samples](https://github.com/flutter/samples.git).
 
-   ```bash
-   flutter channel dev # set to dev channel
-   flutter config --enable-linux-desktop
-   flutter doctor # check if there are any missing dependencies
-   ```
-
-2. Download sample app code from [flutter/samples](https://github.com/flutter/samples.git).
-
-3. Choose one of the samples and build app with bundle.
+2. Choose one of the samples and build.
 
    ```bash
    cd jsonexample
    flutter create .
    flutter build bundle # add --debug option for Debug build
-   flutter build linux
    ```
 
-4. Generate AOT compiled code (Release mode).
+3. Generate AOT compiled code (for Release build).
 
    ```bash
    mkdir -p build/linux/aot
@@ -67,7 +58,8 @@
    build/linux/aot/app.dill
    ```
 
-5. Copy files to corresponding directories. (Replace the files that I provided.)
+4. Copy files to corresponding directories. (Replace the files that I provided.)
+
    - From `samples/jsonexample`
      - `build/linux/aot/libapp.so` → `dotnet-host/lib/armel`
      - `build/flutter_assets/*` → `dotnet-host/res/flutter_assets`
@@ -76,7 +68,8 @@
      - `out/libflutter_engine.so` → `dotnet-host/lib/armel`
      - `out/libflutter_embedder.so` → `dotnet-host/lib/armel`
 
-6. Open `dotnet-host/FlutterApplication.sln` in Visual Studio.
+5. Open `dotnet-host/FlutterApplication.sln` in Visual Studio.
+
    - The native (C/C++) host will be provided later.
 
-7. Build and run.
+6. Build and run.
