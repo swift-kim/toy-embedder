@@ -21,11 +21,11 @@
 #include <tdm_client.h>
 #include <Ecore.h>
 
-class VsyncHandler
+class VsyncWaiter
 {
 public:
-  VsyncHandler();
-  ~VsyncHandler();
+  VsyncWaiter();
+  ~VsyncWaiter();
   void AsyncWaitForVsync(intptr_t baton);
   void AsyncWaitForRunEngineSuccess(FlutterEngine &engine);
 

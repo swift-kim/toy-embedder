@@ -13,10 +13,10 @@ The following features are supported as of now:
 
 2. Replace `libflutter_engine.so`, `icudtl.dat` and `flutter_embedder.h` files in the `out` directory with what you've just built.
 
-3. Open the `BUILD.gn` file and update `toolchain_path` and `sysroot_path` values if required.
+3. In `BUILD.gn`, make sure you have specififed `toolchain_path` and `sysroot_path` values correctly.
 
 4. Run `./gn gen out`.
 
 5. Run `ninja -C out`. If successful, `libflutter_embedder.so` is generated in the `out` directory.
 
-6. See [`test`](test) to run a sample application with `libflutter_embedder.so`.
+6. See [`example`](example) to run a sample application with `libflutter_embedder.so`.

@@ -27,6 +27,8 @@ namespace flutter
         return;
       }
 
+      ecore_wl2_sync();
+
       wl2_window_ = ecore_wl2_window_new(wl2_display_, nullptr, 0, 0, display_width_, display_height_);
       if (!wl2_window_)
       {

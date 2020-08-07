@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-#include "vsync_handler.h"
+#include "vsync_waiter.h"
 #include "logger.h"
 
-VsyncHandler::VsyncHandler()
+VsyncWaiter::VsyncWaiter()
 {
   tdm_error ret;
   client_ = tdm_client_create(&ret);
@@ -45,9 +45,9 @@ VsyncHandler::VsyncHandler()
   thread.join();
 }
 
-void VsyncHandler::BeginVblankEventLoop(void *data)
+void VsyncWaiter::BeginVblankEventLoop(void *data)
 {
-  VsyncHandler *handler = reinterpret_cast<VsyncHandler *>(data);
+  VsyncWaiter *waiter = reinterpret_cast<VsyncWaiter *>(data);
 
   if (!ecore_init())
   {
@@ -55,28 +55,28 @@ void VsyncHandler::BeginVblankEventLoop(void *data)
     return;
   }
 
-  handler->vblank_ecore_pipe_ = ecore_pipe_add(VblankEventLoopCallback, handler);
+  waiter->vblank_ecore_pipe_ = ecore_pipe_add(VblankEventLoopCallback, waiter);
 
   ecore_main_loop_begin();
   ecore_shutdown();
 }
 
-void VsyncHandler::VblankEventLoopCallback(void *data, void *buffer, unsigned int nbyte)
+void VsyncWaiter::VblankEventLoopCallback(void *data, void *buffer, unsigned int nbyte)
 {
-  VsyncHandler *handler = reinterpret_cast<VsyncHandler *>(data);
+  VsyncWaiter *waiter = reinterpret_cast<VsyncWaiter *>(data);
 
   int *event_type = reinterpret_cast<int *>(buffer);
   if ((*event_type) == VBLANK_LOOP_REQUEST)
   {
-    handler->AsyncWaitForVsyncCallback();
+    waiter->AsyncWaitForVsyncCallback();
   }
   else if ((*event_type) == VBLANK_LOOP_DEL_PIPE)
   {
-    handler->DeleteVblankEventPipe();
+    waiter->DeleteVblankEventPipe();
   }
 }
 
-void VsyncHandler::AsyncWaitForVsyncCallback()
+void VsyncWaiter::AsyncWaitForVsyncCallback()
 {
   tdm_error ret;
   ret = tdm_client_vblank_wait(vblank_, 1, TdmClientVblankCallback, this);
@@ -89,7 +89,7 @@ void VsyncHandler::AsyncWaitForVsyncCallback()
   tdm_client_handle_events(client_);
 }
 
-void VsyncHandler::DeleteVblankEventPipe()
+void VsyncWaiter::DeleteVblankEventPipe()
 {
   if (vblank_ecore_pipe_)
   {
@@ -100,22 +100,22 @@ void VsyncHandler::DeleteVblankEventPipe()
   ecore_main_loop_quit();
 }
 
-void VsyncHandler::TdmClientVblankCallback(tdm_client_vblank *vblank,
+void VsyncWaiter::TdmClientVblankCallback(tdm_client_vblank *vblank,
                                            tdm_error error,
                                            unsigned int sequence,
                                            unsigned int tv_sec,
                                            unsigned int tv_usec,
                                            void *user_data)
 {
-  VsyncHandler *handler = reinterpret_cast<VsyncHandler *>(user_data);
+  VsyncWaiter *waiter = reinterpret_cast<VsyncWaiter *>(user_data);
 
   uint64_t frame_start_time_nanos = tv_sec * 1e9 + tv_usec * 1e3;
   uint64_t frame_target_time_nanos = 16.6 * 1e6 + frame_start_time_nanos;
 
-  FlutterEngineOnVsync(handler->engine_, handler->baton_, frame_start_time_nanos, frame_target_time_nanos);
+  FlutterEngineOnVsync(waiter->engine_, waiter->baton_, frame_start_time_nanos, frame_target_time_nanos);
 }
 
-void VsyncHandler::AsyncWaitForVsync(intptr_t baton)
+void VsyncWaiter::AsyncWaitForVsync(intptr_t baton)
 {
   baton_ = baton;
 
@@ -134,7 +134,7 @@ void VsyncHandler::AsyncWaitForVsync(intptr_t baton)
   return;
 }
 
-void VsyncHandler::AsyncWaitForRunEngineSuccess(FlutterEngine &engine)
+void VsyncWaiter::AsyncWaitForRunEngineSuccess(FlutterEngine &engine)
 {
   engine_ = engine;
 
@@ -146,7 +146,7 @@ void VsyncHandler::AsyncWaitForRunEngineSuccess(FlutterEngine &engine)
   AsyncWaitForVsync(baton_);
 }
 
-VsyncHandler::~VsyncHandler()
+VsyncWaiter::~VsyncWaiter()
 {
   if (vblank_ecore_pipe_)
   {

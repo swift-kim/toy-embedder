@@ -23,7 +23,7 @@ namespace flutter
       const std::vector<const char*> &command_line_args,
       RenderDelegate &render_delegate)
       : render_delegate_(render_delegate),
-        vsync_handler_(std::make_unique<VsyncHandler>())
+        vsync_waiter_(std::make_unique<VsyncWaiter>())
   {
     if (::access(bundle_path.c_str(), R_OK) != 0)
     {
@@ -66,7 +66,7 @@ namespace flutter
         .command_line_argc = static_cast<int>(command_line_args.size()),
         .command_line_argv = command_line_args.data(),
         .vsync_callback = [](void *data, intptr_t baton) -> void {
-          reinterpret_cast<FlutterApplication *>(data)->vsync_handler_->AsyncWaitForVsync(baton);
+          reinterpret_cast<FlutterApplication *>(data)->vsync_waiter_->AsyncWaitForVsync(baton);
         },
     };
 
@@ -77,7 +77,7 @@ namespace flutter
       return;
     }
 
-    vsync_handler_->AsyncWaitForRunEngineSuccess(engine_);
+    vsync_waiter_->AsyncWaitForRunEngineSuccess(engine_);
 
     pointer_event_handlers_.push_back(ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, OnPointerEvent, this));
     pointer_event_handlers_.push_back(ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_UP, OnPointerEvent, this));

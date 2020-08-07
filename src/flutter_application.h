@@ -11,7 +11,7 @@
 #include <Ecore_Wl2.h>
 #include <Ecore_Input.h>
 
-#include "vsync_handler.h"
+#include "vsync_waiter.h"
 
 namespace flutter
 {
@@ -42,7 +42,7 @@ namespace flutter
     RenderDelegate &render_delegate_;
     FlutterEngine engine_ = nullptr;
 
-    std::unique_ptr<VsyncHandler> vsync_handler_;
+    std::unique_ptr<VsyncWaiter> vsync_waiter_;
 
     std::vector<Ecore_Event_Handler *> pointer_event_handlers_;
     bool pointer_state_ = false;
