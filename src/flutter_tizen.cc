@@ -26,12 +26,10 @@ struct FlutterApplicationState
 };
 
 FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
-    const FlutterDesktopSize &size,
-    const FlutterDesktopEngineProperties &engine_properties,
-    const char **switches,
-    size_t switches_count)
+    const FlutterDisplaySize &size,
+    const FlutterEngineProperties &engine_properties)
 {
-  auto state = std::make_unique<FlutterApplicationState>();
+  auto state = new FlutterApplicationState();
 
   state->display = std::make_unique<flutter::TizenDisplay>(size.width, size.height);
   if (!state->display->IsValid())
@@ -40,16 +38,10 @@ FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
     return nullptr;
   }
 
-  std::vector<const char*> args;
-  for (size_t i = 0; i < switches_count; i++)
-  {
-    args.push_back(switches[i]);
-  }
-
   state->application = std::make_unique<flutter::FlutterApplication>(
       engine_properties.assets_path,
       engine_properties.icu_data_path,
-      args,
+      engine_properties.aot_library_path,
       *state->display);
 
   if (!state->application->IsValid())
@@ -64,7 +56,7 @@ FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
     return nullptr;
   }
 
-  return state.release();
+  return state;
 }
 
 FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application)

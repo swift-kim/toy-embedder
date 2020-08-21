@@ -15,8 +15,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Tizen.Applications;
 using Tizen.System;
@@ -29,33 +29,27 @@ namespace FlutterApplication
 
         #region flutter_tizen.h
         [StructLayout(LayoutKind.Sequential)]
-        internal struct FlutterDesktopSize
+        internal struct FlutterDisplaySize
         {
             public int width;
             public int height;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct FlutterDesktopEngineProperties
+        internal struct FlutterEngineProperties
         {
             public string assets_path;
             public string icu_data_path;
+            public string aot_library_path;
         }
 
         [DllImport("flutter_embedder.so")]
         internal static extern IntPtr RunFlutterApplication(
-            IntPtr /*FlutterDesktopSize*/ size,
-            IntPtr /*FlutterDesktopEngineProperties*/ engine_properties,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] string[] switches,
-            uint switches_count);
+            ref FlutterDisplaySize size,
+            ref FlutterEngineProperties engine_properties);
 
         [DllImport("flutter_embedder.so")]
-        internal static extern IntPtr StopFlutterApplication(IntPtr /*FlutterApplicationRef*/ application);
-        #endregion
-
-        #region flutter_embedder.h
-        [DllImport("flutter_engine.so")]
-        internal static extern bool FlutterEngineRunsAOTCompiledDartCode();
+        internal static extern IntPtr StopFlutterApplication(IntPtr application);
         #endregion
 
         protected override void OnCreate()
@@ -70,7 +64,7 @@ namespace FlutterApplication
                 Console.Error.WriteLine("Could not obtain the screen size.");
                 return;
             }
-            var size = new FlutterDesktopSize
+            var size = new FlutterDisplaySize
             {
                 width = width,
                 height = height
@@ -89,42 +83,17 @@ namespace FlutterApplication
             var assetsPath = Path.Combine(appRoot, "res", "flutter_assets");
             var icuDataPath = Path.Combine(appRoot, "res", "icudtl.dat");
 
-            var args = new List<string>
-            {
-                "--verbose-logging",
-                "--trace-startup",
-                "--disable-service-auth-codes",
-            };
-
-            if (FlutterEngineRunsAOTCompiledDartCode())
-            {
-                Console.WriteLine("Run AOT compiled Dart code: " + aotLibPath);
-                args.Add("--aot-shared-library-name=" + aotLibPath);
-            }
-
-            var properties = new FlutterDesktopEngineProperties
+            var properties = new FlutterEngineProperties
             {
                 assets_path = assetsPath,
                 icu_data_path = icuDataPath,
+                aot_library_path = aotLibPath,
             };
 
-            var pSize = Marshal.AllocHGlobal(Marshal.SizeOf(size));
-            var pProperties = Marshal.AllocHGlobal(Marshal.SizeOf(properties));
-            Marshal.StructureToPtr<FlutterDesktopSize>(size, pSize, false);
-            Marshal.StructureToPtr<FlutterDesktopEngineProperties>(properties, pProperties, false);
-
-            try
+            Instance = RunFlutterApplication(ref Unsafe.AsRef(size), ref Unsafe.AsRef(properties));
+            if (Instance == IntPtr.Zero)
             {
-                Instance = RunFlutterApplication(pSize, pProperties, args.ToArray(), (uint)args.Count);
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("Could not start the Flutter application: " + ex);
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(pSize);
-                Marshal.FreeHGlobal(pProperties);
+                throw new Exception("Could not launch a Flutter application.");
             }
         }
 
@@ -132,16 +101,9 @@ namespace FlutterApplication
         {
             base.OnTerminate();
 
-            try
+            if (Instance != IntPtr.Zero)
             {
-                if (Instance != IntPtr.Zero)
-                {
-                    StopFlutterApplication(Instance);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("Could not stop the Flutter application: " + ex);
+                StopFlutterApplication(Instance);
             }
         }
 

@@ -27,42 +27,29 @@ extern "C"
 {
 #endif
 
-  typedef struct FlutterApplicationState* FlutterApplicationRef;
+  typedef struct FlutterApplicationState *FlutterApplicationRef;
 
   // Properties representing a generic rectangular size.
   typedef struct
   {
     int32_t width;
     int32_t height;
-  } FlutterDesktopSize;
+  } FlutterDisplaySize;
 
   // Properties for configuring a Flutter engine instance.
   typedef struct
   {
     // The path to the flutter_assets folder for the application to be run.
-    // This can either be an absolute path or a path relative to the directory
-    // containing the executable.
     const char *assets_path;
     // The path to the icudtl.dat file for the version of Flutter you are using.
-    // This can either be an absolute path or a path relative to the directory
-    // containing the executable.
     const char *icu_data_path;
-  } FlutterDesktopEngineProperties;
+    // The path to the libapp.so file for the application to be run.
+    const char *aot_library_path;
+  } FlutterEngineProperties;
 
   FLUTTER_EXPORT FlutterApplicationRef RunFlutterApplication(
-      const FlutterDesktopSize &size,
-      const FlutterDesktopEngineProperties &engine_properties,
-      // The switches to pass to the Flutter engine.
-      //
-      // See: https://github.com/flutter/engine/blob/master/shell/common/switches.h
-      // for details. Not all arguments will apply.
-      //
-      // There's no trivial way of marshaling a native struct containing a string
-      // array into a managed struct in C#. Therefore, the switches should be
-      // directly passed as argument without wrapping with a struct.
-      const char **switches,
-      // The number of elements in |switches|.
-      size_t switches_count);
+      const FlutterDisplaySize &size,
+      const FlutterEngineProperties &properties);
 
   FLUTTER_EXPORT bool StopFlutterApplication(FlutterApplicationRef application);
 

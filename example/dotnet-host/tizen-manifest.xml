@@ -1,19 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="5.5" package="org.tizen.example.FlutterApplication" version="1.0.0">
-  <profile name="common" />
-  <ui-application appid="org.tizen.example.FlutterApplication"
-					exec="FlutterApplication.dll"
-					type="dotnet"
-					multiple="false"
-					taskmanage="true"
-					nodisplay="false"
-					launch_mode="single"
-					api-version="6">
-    <label>FlutterApplication</label>
-    <icon>ic_launcher.png</icon>
-    <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true" />
-    <privileges>
-      <privilege>http://tizen.org/privilege/mediastorage</privilege>
-    </privileges>
-  </ui-application>
+<manifest package="org.example.FlutterApplication" version="1.0.0" api-version="5.5" xmlns="http://tizen.org/ns/packages">
+    <profile name="common" />
+    <ui-application appid="org.example.FlutterApplication" exec="FlutterApplication.dll" multiple="false" nodisplay="false" taskmanage="true" api-version="6" type="dotnet" launch_mode="single">
+        <label>FlutterApplication</label>
+        <icon>ic_launcher.png</icon>
+        <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true" />
+        <splash-screens />
+    </ui-application>
+    <shortcut-list />
+    <dependencies />
+    <provides-appdefined-privileges />
 </manifest>

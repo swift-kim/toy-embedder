@@ -20,7 +20,7 @@ namespace flutter
   FlutterApplication::FlutterApplication(
       std::string bundle_path,
       std::string icu_data_path,
-      const std::vector<const char*> &command_line_args,
+      std::string aot_lib_path,
       RenderDelegate &render_delegate)
       : render_delegate_(render_delegate),
         vsync_waiter_(std::make_unique<VsyncWaiter>())
@@ -63,12 +63,31 @@ namespace flutter
         .struct_size = sizeof(FlutterProjectArgs),
         .assets_path = bundle_path.c_str(),
         .icu_data_path = icu_data_path.c_str(),
-        .command_line_argc = static_cast<int>(command_line_args.size()),
-        .command_line_argv = command_line_args.data(),
         .vsync_callback = [](void *data, intptr_t baton) -> void {
           reinterpret_cast<FlutterApplication *>(data)->vsync_waiter_->AsyncWaitForVsync(baton);
         },
     };
+
+    if (FlutterEngineRunsAOTCompiledDartCode())
+    {
+      if (aot_lib_path.empty())
+      {
+        LogE("Attempted to load AOT data, but no aot_lib_path was provided.");
+        return;
+      }
+      FlutterEngineAOTDataSource source = {};
+      source.type = kFlutterEngineAOTDataSourceTypeElfPath;
+      source.elf_path = aot_lib_path.c_str();
+      FlutterEngineAOTData data = nullptr;
+      auto result = FlutterEngineCreateAOTData(&source, &data);
+      if (result != kSuccess)
+      {
+        LogE("Failed to load AOT data from: %s", aot_lib_path.c_str());
+        return;
+      }
+      aot_data_ = UniqueAotDataPtr(data);
+      args.aot_data = aot_data_.get();
+    }
 
     auto result = FlutterEngineRun(FLUTTER_ENGINE_VERSION, &config, &args, this, &engine_);
     if (result != kSuccess)

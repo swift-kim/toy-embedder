@@ -13,6 +13,17 @@
 
 #include "vsync_waiter.h"
 
+// Custom deleter for FlutterEngineAOTData.
+struct AOTDataDeleter
+{
+  void operator()(FlutterEngineAOTData aot_data)
+  {
+    FlutterEngineCollectAOTData(aot_data);
+  }
+};
+
+using UniqueAotDataPtr = std::unique_ptr<_FlutterEngineAOTData, AOTDataDeleter>;
+
 namespace flutter
 {
   class FlutterApplication
@@ -31,7 +42,7 @@ namespace flutter
 
     FlutterApplication(std::string bundle_path,
                        std::string icu_data_path,
-                       const std::vector<const char*> &args,
+                       std::string aot_lib_path,
                        RenderDelegate &render_delegate);
     virtual ~FlutterApplication();
     bool IsValid() const;
@@ -47,7 +58,13 @@ namespace flutter
     std::vector<Ecore_Event_Handler *> pointer_event_handlers_;
     bool pointer_state_ = false;
 
-    void SendFlutterPointerEvent(FlutterPointerPhase phase, double x, double y, size_t timestamp);
+    UniqueAotDataPtr aot_data_ = nullptr;
+
+    void SendFlutterPointerEvent(
+        FlutterPointerPhase phase,
+        double x,
+        double y,
+        size_t timestamp);
     static Eina_Bool OnPointerEvent(void *data, int type, void *event);
 
     // Disallow copy and assign operations.
