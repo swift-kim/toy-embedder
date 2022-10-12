@@ -1,0 +1,219 @@
+# Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+config("compiler") {
+  assert(toolchain_path != "")
+  assert(sysroot_path != "")
+
+  cflags = [
+    "-Wall",
+    "-Wextra",
+    "-fPIC",
+    "-pipe",
+    "-pthread",
+    "-fcolor-diagnostics",
+    "-fvisibility=hidden",
+  ]
+  cflags_c = [ "-fno-strict-aliasing" ]
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+    "-fno-rtti",
+    "-fno-exceptions",
+  ]
+  include_dirs = [ "${sysroot_path}/usr/include" ]
+  defines = []
+  ldflags = [
+    "-fPIC",
+    "-pthread",
+    "-Wl,--fatal-warnings",
+    "-Wl,-z,noexecstack",
+    "-Wl,-z,now",
+    "-Wl,-z,relro",
+    "-Wl,-z,defs",
+  ]
+  lib_dirs = [
+    "${toolchain_path}/usr/lib",
+    "${sysroot_path}/usr/lib",
+  ]
+  libs = [ "dl" ]
+
+  # Stack protection.
+  cflags += [
+    "-fstack-protector",
+    "--param=ssp-buffer-size=4",
+  ]
+
+  # Cross compilation.
+  if (target_cpu == "x64") {
+    cflags += [
+      "-m64",
+      "-march=x86-64",
+    ]
+    ldflags += [ "-m64" ]
+  } else if (target_cpu == "x86") {
+    cflags += [
+      "-m32",
+      "-mstack-alignment=16",
+      "-mstackrealign",
+    ]
+    ldflags += [ "-m32" ]
+  } else if (target_cpu == "arm") {
+    cflags += [
+      "-march=armv7-a",
+      "-mfloat-abi=softfp",
+      "-mtune=generic-armv7-a",
+      "-mthumb",
+      "-mfpu=neon",
+    ]
+  } else if (target_cpu == "arm64") {
+    cflags += [ "--target=aarch64-linux-gnu" ]
+    ldflags += [ "--target=aarch64-linux-gnu" ]
+  }
+
+  # Extra warnings.
+  cflags += [ "-Wstring-conversion" ]
+
+  # Symbols.
+  cflags += [ "-g${symbol_level}" ]
+}
+
+config("libcxx") {
+  assert(sysroot_path != "")
+
+  if (target_cpu == "arm") {
+    gcc_target_triple = "armv7l-tizen-linux-gnueabi"
+  } else if (target_cpu == "arm64") {
+    gcc_target_triple = "aarch64-tizen-linux-gnu"
+  } else if (target_cpu == "x86") {
+    gcc_target_triple = "i586-tizen-linux-gnu"
+  } else {
+    assert(false, "Unknown target_cpu: " + target_cpu)
+  }
+
+  include_dirs = [
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include",
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include/c++",
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include/c++/${gcc_target_triple}",
+  ]
+  libs = [ "stdc++" ]
+}
+
+config("no_optimize") {
+  defines = [ "_DEBUG" ]
+  cflags = [ "-O0" ]
+}
+
+config("optimize") {
+  defines = [ "NDEBUG" ]
+  cflags = [
+    "-O2",
+    "-fno-ident",
+  ]
+  ldflags = [
+    "-Wl,-O2",
+    "-Wl,--as-needed",
+  ]
+
+  # Put data and code in their own sections, so that unused symbols
+  # can be removed at link time.
+  cflags += [
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
+  ldflags += [ "-Wl,--gc-sections" ]
+}
+
+config("ldconfig") {
+  ldflags = [ "-Wl,-rpath=\$ORIGIN" ]
+}
+
+toolchain("clang") {
+  assert(toolchain_path != "")
+  assert(sysroot_path != "")
+  assert(target_triple != "")
+
+  cc = "${toolchain_path}/bin/clang"
+  cxx = "${toolchain_path}/bin/clang++"
+  ld = "${toolchain_path}/bin/clang++"
+  readelf = "${toolchain_path}/bin/llvm-readelf"
+  nm = "${toolchain_path}/bin/llvm-nm"
+  strip = "${toolchain_path}/bin/llvm-strip"
+
+  target_triple_flags = "--target=${target_triple}"
+  sysroot_flags = "--sysroot=${sysroot_path}"
+
+  tool("cc") {
+    depfile = "{{output}}.d"
+    command = "$cc -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    depsformat = "gcc"
+    description = "CC {{output}}"
+    outputs =
+        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+
+  tool("cxx") {
+    depfile = "{{output}}.d"
+    command = "$cxx -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+    depsformat = "gcc"
+    description = "CXX {{output}}"
+    outputs =
+        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+
+  tool("solink") {
+    soname = "{{target_output_name}}{{output_extension}}"
+    sofile = "{{root_out_dir}}/${soname}"
+    unstripped_sofile = "{{root_out_dir}}/so.unstripped/${soname}"
+    rspfile = sofile + ".rsp"
+    tocfile = sofile + ".TOC"
+    temporary_tocname = sofile + ".tmp"
+
+    link_command = "$ld $target_triple_flags $sysroot_flags -shared {{ldflags}} -o $unstripped_sofile -Wl,--build-id=sha1 -Wl,-soname=${soname} @${rspfile}"
+    toc_command = "{ $readelf -d $unstripped_sofile | grep SONAME; $nm -gD -f posix $unstripped_sofile | cut -f1-2 -d' '; } > $temporary_tocname"
+    replace_command = "if ! cmp -s $temporary_tocname $tocfile; then mv $temporary_tocname $tocfile; fi"
+    strip_command = "$strip -o $sofile $unstripped_sofile"
+
+    command =
+        "$link_command && $toc_command && $replace_command && $strip_command"
+    rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
+
+    description = "SOLINK $sofile"
+    default_output_extension = ".so"
+    output_prefix = "lib"
+
+    # Since the above commands only updates the .TOC file when it changes, ask
+    # Ninja to check if the timestamp actually changed to know if downstream
+    # dependencies should be recompiled.
+    restat = true
+
+    outputs = [
+      sofile,
+      unstripped_sofile,
+      tocfile,
+    ]
+
+    link_output = sofile
+    depend_output = tocfile
+  }
+
+  tool("link") {
+    exename = "{{target_output_name}}{{output_extension}}"
+    outfile = "{{root_out_dir}}/$exename"
+    rspfile = "$outfile.rsp"
+    unstripped_outfile = "{{root_out_dir}}/exe.unstripped/$exename"
+    command = "$ld $target_triple_flags $sysroot_flags {{ldflags}} -o $unstripped_outfile -Wl,--build-id=sha1 -Wl,--start-group @${rspfile} {{solibs}} -Wl,--end-group {{libs}} && $strip -o $outfile $unstripped_outfile"
+    description = "LINK $outfile"
+    rspfile_content = "{{inputs}}"
+    outputs = [
+      unstripped_outfile,
+      outfile,
+    ]
+  }
+
+  tool("stamp") {
+    command = "touch {{output}}"
+    description = "STAMP {{output}}"
+  }
+}

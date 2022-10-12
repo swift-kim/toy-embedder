@@ -1,0 +1,56 @@
+# Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+declare_args() {
+  # How many symbols to include in the build.
+  #   2 means regular build with symbols.
+  #   1 means minimal symbols, usually enough for backtraces only.
+  #   0 means no symbols.
+  symbol_level = 2
+
+  # Unoptimized build (a.k.a. debug build).
+  is_unopt = false
+
+  # Path to a toolchain containing the compilers, linkers, and associated tools
+  # to build native binaries.
+  toolchain_path = ""
+
+  # Path to a sysroot containing the system libraries and associated headers on
+  # the target.
+  sysroot_path = ""
+
+  # The target triple, e.g. arm-linux-gnueabi.
+  target_triple = ""
+}
+
+_default_configs = [
+  "//build:compiler",
+  "//build:libcxx",
+]
+
+if (is_unopt) {
+  _default_configs += [ "//build:no_optimize" ]
+} else {
+  _default_configs += [ "//build:optimize" ]
+}
+
+_executable_configs = _default_configs + [ "//build:ldconfig" ]
+
+set_defaults("executable") {
+  configs = _executable_configs
+}
+
+set_defaults("shared_library") {
+  configs = _executable_configs
+}
+
+set_defaults("source_set") {
+  configs = _default_configs
+}
+
+set_defaults("test") {
+  configs = _executable_configs
+}
+
+set_default_toolchain("//build:clang")
