@@ -7,8 +7,6 @@ config("compiler") {
   assert(sysroot_path != "")
 
   cflags = [
-    "-Wall",
-    "-Wextra",
     "-fPIC",
     "-pipe",
     "-pthread",
@@ -17,9 +15,7 @@ config("compiler") {
   ]
   cflags_c = [ "-fno-strict-aliasing" ]
   cflags_cc = [
-    "-std=c++17",
     "-fvisibility-inlines-hidden",
-    "-fno-rtti",
     "-fno-exceptions",
   ]
   include_dirs = [ "${sysroot_path}/usr/include" ]
@@ -72,14 +68,57 @@ config("compiler") {
     ldflags += [ "--target=aarch64-linux-gnu" ]
   }
 
+  # Compiler warnings.
+  cflags += [
+    "-Wall",
+    "-Wextra",
+    "-Wendif-labels",
+    "-Werror",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-parameter",
+    "-Wno-unused-but-set-parameter",
+    "-Wno-unused-but-set-variable",
+    "-Wno-implicit-int-float-conversion",
+    "-Wno-c99-designator",
+    "-Wno-deprecated-copy",
+    "-Wno-psabi",
+    "-Wno-unqualified-std-cast-call",
+    "-Wno-non-c-typedef-for-linkage",
+    "-Wno-range-loop-construct",
+  ]
+
   # Extra warnings.
-  cflags += [ "-Wstring-conversion" ]
+  cflags += [
+    "-Wstring-conversion",
+    "-Wnewline-eof",
+  ]
 
   # Symbols.
   cflags += [ "-g${symbol_level}" ]
 }
 
-config("libcxx") {
+config("cxx_version_default") {
+  cflags_cc = [ "-std=c++17" ]
+}
+
+config("cxx_version_11") {
+  cflags_cc = [ "-std=c++11" ]
+}
+
+config("no_rtti") {
+  cflags_cc = [ "-fno-rtti" ]
+}
+
+config("no_system_cxx") {
+  cflags_cc = [ "-nostdinc++" ]
+  ldflags = [ "-nostdlib++" ]
+  include_dirs = [
+    "//third_party/libcxx/include",
+    "//third_party/libcxxabi/include",
+  ]
+}
+
+config("system_cxx") {
   assert(sysroot_path != "")
 
   if (target_cpu == "arm") {
@@ -93,9 +132,9 @@ config("libcxx") {
   }
 
   include_dirs = [
-    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include",
-    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include/c++",
-    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/6.2.1/include/c++/${gcc_target_triple}",
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/9.2.0/include",
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/9.2.0/include/c++",
+    "${sysroot_path}/usr/lib/gcc/${gcc_target_triple}/9.2.0/include/c++/${gcc_target_triple}",
   ]
   libs = [ "stdc++" ]
 }

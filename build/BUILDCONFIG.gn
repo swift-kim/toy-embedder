@@ -22,12 +22,28 @@ declare_args() {
 
   # The target triple, e.g. arm-linux-gnueabi.
   target_triple = ""
+
+  # Turn Run-Time Type Identification on or off.
+  enable_rtti = false
+
+  # Use the system libstdc++ without building third_party/libcxx from source.
+  use_system_cxx = false
 }
 
 _default_configs = [
   "//build:compiler",
-  "//build:libcxx",
+  "//build:cxx_version_default",
 ]
+
+if (enable_rtti) {
+  _default_configs += [ "//build:no_rtti" ]
+}
+
+if (use_system_cxx) {
+  _default_configs += [ "//build:system_cxx" ]
+} else {
+  _default_configs += [ "//build:no_system_cxx" ]
+}
 
 if (is_unopt) {
   _default_configs += [ "//build:no_optimize" ]
@@ -39,18 +55,25 @@ _executable_configs = _default_configs + [ "//build:ldconfig" ]
 
 set_defaults("executable") {
   configs = _executable_configs
+  deps = []
+
+  if (!use_system_cxx) {
+    deps += [ "//third_party/libcxx" ]
+  }
 }
 
 set_defaults("shared_library") {
   configs = _executable_configs
+  deps = []
+
+  if (!use_system_cxx) {
+    deps += [ "//third_party/libcxx" ]
+  }
 }
 
 set_defaults("source_set") {
   configs = _default_configs
-}
-
-set_defaults("test") {
-  configs = _executable_configs
+  deps = []
 }
 
 set_default_toolchain("//build:clang")
