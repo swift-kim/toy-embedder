@@ -175,6 +175,7 @@ toolchain("clang") {
 
   cc = "${toolchain_path}/bin/clang"
   cxx = "${toolchain_path}/bin/clang++"
+  ar = "${toolchain_path}/bin/llvm-ar"
   ld = "${toolchain_path}/bin/clang++"
   readelf = "${toolchain_path}/bin/llvm-readelf"
   nm = "${toolchain_path}/bin/llvm-nm"
@@ -199,6 +200,17 @@ toolchain("clang") {
     description = "CXX {{output}}"
     outputs =
         [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+
+  tool("alink") {
+    rspfile = "{{output}}.rsp"
+    command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
+    description = "AR {{output}}"
+    rspfile_content = "{{inputs}}"
+    outputs =
+        [ "{{target_out_dir}}/{{target_output_name}}{{output_extension}}" ]
+    default_output_extension = ".a"
+    output_prefix = "lib"
   }
 
   tool("solink") {
@@ -254,5 +266,10 @@ toolchain("clang") {
   tool("stamp") {
     command = "touch {{output}}"
     description = "STAMP {{output}}"
+  }
+
+  tool("copy") {
+    command = "ln -f {{source}} {{output}} 2>/dev/null || (rm -rf {{output}} && cp -af {{source}} {{output}})"
+    description = "COPY {{source}} {{output}}"
   }
 }

@@ -31,27 +31,27 @@ declare_args() {
 }
 
 _default_configs = [
-  "//build:compiler",
-  "//build:cxx_version_default",
+  "//build/config:compiler",
+  "//build/config:cxx_version_default",
 ]
 
 if (enable_rtti) {
-  _default_configs += [ "//build:no_rtti" ]
+  _default_configs += [ "//build/config:no_rtti" ]
 }
 
 if (use_system_cxx) {
-  _default_configs += [ "//build:system_cxx" ]
+  _default_configs += [ "//build/config:system_cxx" ]
 } else {
-  _default_configs += [ "//build:no_system_cxx" ]
+  _default_configs += [ "//build/config:no_system_cxx" ]
 }
 
 if (is_unopt) {
-  _default_configs += [ "//build:no_optimize" ]
+  _default_configs += [ "//build/config:no_optimize" ]
 } else {
-  _default_configs += [ "//build:optimize" ]
+  _default_configs += [ "//build/config:optimize" ]
 }
 
-_executable_configs = _default_configs + [ "//build:ldconfig" ]
+_executable_configs = _default_configs + [ "//build/config:ldconfig" ]
 
 set_defaults("executable") {
   configs = _executable_configs
@@ -76,4 +76,4 @@ set_defaults("source_set") {
   deps = []
 }
 
-set_default_toolchain("//build:clang")
+set_default_toolchain("//build/config:clang")

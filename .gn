@@ -3,7 +3,7 @@
 script_executable = "python3"
 
 # The location of the build configuration file.
-buildconfig = "//build/BUILDCONFIG.gn"
+buildconfig = "//build/config/BUILDCONFIG.gn"
 
 # The secondary source root is a parallel directory tree where
 # GN build files are placed when they can not be placed directly

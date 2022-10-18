@@ -58,7 +58,7 @@ source_set("libcxx") {
   # in one of the third party dependencies. This mirrors the configuration in
   # libcxxabi.
   if (enable_rtti) {
-    configs -= [ "//build:no_rtti" ]
+    configs -= [ "//build/config:no_rtti" ]
   }
 
   # shared_mutex.cpp and debug.cpp are purposefully in violation.

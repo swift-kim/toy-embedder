@@ -26,13 +26,13 @@ source_set("libcxxabi") {
 
   # Compile libcxx ABI using C++11. This replicates the rule in the
   # CMakeLists on the "cxx_abiobjects" target.
-  configs -= [ "//build:cxx_version_default" ]
-  configs += [ "//build:cxx_version_11" ]
+  configs -= [ "//build/config:cxx_version_default" ]
+  configs += [ "//build/config:cxx_version_11" ]
 
   # Third party dependencies may depend on RTTI. Add support for the same in
   # cxxabi.
   if (enable_rtti) {
-    configs -= [ "//build:no_rtti" ]
+    configs -= [ "//build/config:no_rtti" ]
   }
 
   sources += [
