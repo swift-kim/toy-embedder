@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 group("tizen") {
-  deps = [ "//src/flutter/shell/platform/tizen:flutter_tizen" ]
+  deps = [ "//flutter/shell/platform/tizen:flutter_tizen" ]
 }
 
 group("unittests") {
