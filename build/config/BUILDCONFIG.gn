@@ -23,9 +23,6 @@ declare_args() {
   # The target triple, e.g. arm-linux-gnueabi.
   target_triple = ""
 
-  # Turn Run-Time Type Identification on or off.
-  enable_rtti = false
-
   # Use the system libstdc++ without building third_party/libcxx from source.
   use_system_cxx = false
 }
@@ -34,10 +31,6 @@ _default_configs = [
   "//build/config:compiler",
   "//build/config:cxx_version_default",
 ]
-
-if (enable_rtti) {
-  _default_configs += [ "//build/config:no_rtti" ]
-}
 
 if (use_system_cxx) {
   _default_configs += [ "//build/config:system_cxx" ]

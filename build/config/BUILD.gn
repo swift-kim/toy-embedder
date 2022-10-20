@@ -105,10 +105,6 @@ config("cxx_version_11") {
   cflags_cc = [ "-std=c++11" ]
 }
 
-config("no_rtti") {
-  cflags_cc = [ "-fno-rtti" ]
-}
-
 config("no_system_cxx") {
   cflags_cc = [ "-nostdinc++" ]
   ldflags = [ "-nostdlib++" ]

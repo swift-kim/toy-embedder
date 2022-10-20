@@ -29,12 +29,6 @@ source_set("libcxxabi") {
   configs -= [ "//build/config:cxx_version_default" ]
   configs += [ "//build/config:cxx_version_11" ]
 
-  # Third party dependencies may depend on RTTI. Add support for the same in
-  # cxxabi.
-  if (enable_rtti) {
-    configs -= [ "//build/config:no_rtti" ]
-  }
-
   sources += [
     "src/abort_message.cpp",
     "src/cxa_aux_runtime.cpp",
