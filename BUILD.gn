@@ -9,5 +9,5 @@ group("tizen") {
 group("unittests") {
   testonly = true
 
-  deps = []
+  deps = [ "//flutter/shell/platform/tizen:flutter_tizen_unittests" ]
 }

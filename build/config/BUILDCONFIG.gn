@@ -55,6 +55,11 @@ set_defaults("executable") {
   }
 }
 
+set_defaults("static_library") {
+  configs = _default_configs
+  deps = []
+}
+
 set_defaults("shared_library") {
   configs = _executable_configs
   deps = []
