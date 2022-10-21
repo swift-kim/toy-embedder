@@ -1,4 +1,6 @@
-# This file should be kept in sync with the engine's DEPS.
+# Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 deps = {
   'src/third_party/rapidjson': 'https://fuchsia.googlesource.com/third_party/rapidjson@ef3564c5c8824989393b87df25355baf35ff544b',
@@ -11,9 +13,17 @@ deps = {
     'packages': [
       {
         'package': 'gn/gn/${{platform}}',
-        'version': 'git_revision:b79031308cc878488202beb99883ec1f2efd9a6d'
+        'version': 'git_revision:b79031308cc878488202beb99883ec1f2efd9a6d',
       },
     ],
     'dep_type': 'cipd',
   },
 }
+
+hooks = [
+  {
+    'name': 'Download engine artifacts',
+    'pattern': '.',
+    'action': ['python3', 'src/tools/download_engine.py'],
+  },
+]
