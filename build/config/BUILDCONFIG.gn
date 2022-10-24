@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 declare_args() {
-  # How many symbols to include in the build.
+  # How many (unstripped) symbols to include in the build.
   #   2 means regular build with symbols.
   #   1 means minimal symbols, usually enough for backtraces only.
   #   0 means no symbols.
-  symbol_level = 2
+  symbol_level = 1
 
   # Unoptimized build (a.k.a. debug build).
   is_unopt = false
@@ -22,6 +22,9 @@ declare_args() {
 
   # The target triple, e.g. arm-linux-gnueabi.
   target_triple = ""
+
+  # Turn this on if using old LLVM 10.
+  is_legacy_clang = false
 
   # Use the system libstdc++ without building third_party/libcxx from source.
   use_system_cxx = false
