@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+# Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def get_out_dir(args):
+  target_dir = ['tizen', args.target_cpu]
+
+  if args.unoptimized:
+    target_dir.append('unopt')
+
+  if args.target_dir:
+    target_dir = [args.target_dir]
+
+  return os.path.join('out', '_'.join(target_dir))
+
+
+def to_gn_args(args):
+  gn_args = {}
+
+  gn_args['is_unopt'] = args.unoptimized
+
+  gn_args['target_os'] = 'linux'
+  gn_args['target_cpu'] = args.target_cpu
+
+  gn_args['toolchain_path'] = args.target_toolchain
+  gn_args['sysroot_path'] = args.target_sysroot
+  gn_args['target_triple'] = args.target_triple
+  gn_args['is_legacy_clang'] = args.legacy_clang
+
+  gn_args['use_system_cxx'] = args.system_cxx
+
+  for key, val in gn_args.items():
+    if isinstance(val, bool):
+      gn_args[key] = 'true' if val else 'false'
+    else:
+      gn_args[key] = '"{}"'.format(val)
+
+  return gn_args
+
+
+def parse_args(args):
+  args = args[1:]
+  parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
+
+  parser.add_argument('--unoptimized', default=False, action='store_true')
+
+  parser.add_argument('--target-cpu', type=str, required=True,
+                      choices=['arm', 'x86', 'arm64'])
+
+  parser.add_argument('--target-toolchain', type=str, required=True)
+  parser.add_argument('--target-sysroot', type=str, required=True)
+  parser.add_argument('--target-triple', type=str, required=True)
+  parser.add_argument('--legacy-clang', default=False, action='store_true')
+
+  parser.add_argument('--system-cxx', default=False, action='store_true')
+
+  parser.add_argument('--target-dir', default=None, type=str)
+  parser.add_argument('--verbose', default=False, action='store_true')
+
+  return parser.parse_args(args)
+
+
+def main():
+  args = parse_args(sys.argv)
+
+  root_dir = Path(__file__).parent.parent
+  gn = root_dir / 'third_party' / 'gn' / 'gn'
+  command = [gn, 'gen', '--check', '--export-compile-commands']
+
+  gn_args = ['%s=%s' % keyval for keyval in to_gn_args(args).items()]
+  out_dir = get_out_dir(args)
+  command.append(out_dir)
+  command.append('--args=' + ' '.join(gn_args))
+
+  if args.verbose:
+    command.append('-v')
+
+  print('Generating GN files in: ' + out_dir)
+  try:
+    subprocess.run(command, cwd=root_dir, check=True)
+  except subprocess.CalledProcessError:
+    print('Failed to generate GN files.')
+    sys.exit(1)
+
+
+# Execute only if run as a script.
+if __name__ == "__main__":
+  main()
