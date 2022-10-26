@@ -5,6 +5,7 @@
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -44,6 +45,21 @@ def get_target_triple(target_cpu):
     sys.exit('Unknown target CPU.')
 
 
+def get_clang_version(toolchain):
+  clang_path = os.path.join(toolchain, 'bin', 'clang')
+  if not os.access(clang_path, os.X_OK):
+    sys.exit('{} is not a valid executable.'.format(clang_path))
+
+  # "Ubuntu clang version 11.0.0-2~ubuntu20.04.1"
+  output = subprocess.run(
+    [clang_path, '--version'], encoding='utf-8', stdout=subprocess.PIPE).stdout
+  match = re.search('(\d+)\.\d+\.\d+', output)
+  if match:
+    return int(match.group(1))
+  else:
+    sys.exit('Unknown clang version.')
+
+
 def to_gn_args(args):
   gn_args = {}
 
@@ -56,22 +72,24 @@ def to_gn_args(args):
   gn_args['sysroot_path'] = get_sysroot_path(
     args.target_sysroot, args.target_cpu)
   gn_args['target_triple'] = get_target_triple(args.target_cpu)
-  gn_args['is_legacy_clang'] = args.legacy_clang
+  gn_args['clang_version'] = get_clang_version(args.target_toolchain)
 
   gn_args['use_system_cxx'] = args.system_cxx
 
   for key, val in gn_args.items():
     if isinstance(val, bool):
       gn_args[key] = 'true' if val else 'false'
-    else:
+    elif isinstance(val, str):
       gn_args[key] = '"{}"'.format(val)
+    else:
+      gn_args[key] = val
 
   return gn_args
 
 
 def parse_args(args):
   args = args[1:]
-  parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
+  parser = argparse.ArgumentParser(description='A script to run "gn gen".')
 
   parser.add_argument('--unoptimized', default=False, action='store_true')
 
@@ -80,7 +98,6 @@ def parse_args(args):
 
   parser.add_argument('--target-toolchain', type=str, required=True)
   parser.add_argument('--target-sysroot', type=str)
-  parser.add_argument('--legacy-clang', default=False, action='store_true')
 
   parser.add_argument('--system-cxx', default=False, action='store_true')
 

@@ -80,14 +80,18 @@ config("compiler") {
     "-Wno-deprecated-copy",
     "-Wno-range-loop-construct",
   ]
-  if (!is_legacy_clang) {
+  if (clang_version >= 11) {
+    cflags += [ "-Wno-psabi" ]
+  }
+  if (clang_version >= 14) {
     cflags += [
       "-Wno-unused-but-set-parameter",
       "-Wno-unused-but-set-variable",
-      "-Wno-psabi",
-      "-Wno-unqualified-std-cast-call",
       "-Wno-non-c-typedef-for-linkage",
     ]
+  }
+  if (clang_version >= 15) {
+    cflags += [ "-Wno-unqualified-std-cast-call" ]
   }
 
   # Extra warnings.

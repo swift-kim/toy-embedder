@@ -23,8 +23,8 @@ declare_args() {
   # The target triple, e.g. arm-linux-gnueabi.
   target_triple = ""
 
-  # Turn this on when using old LLVM < 15.
-  is_legacy_clang = false
+  # The compiler version.
+  clang_version = 10
 
   # Use the system libstdc++ without building third_party/libcxx from source.
   use_system_cxx = false
