@@ -1,4 +1,5 @@
 .vscode/
 /engine/
+/sysroot/
 /third_party/
 /out/
