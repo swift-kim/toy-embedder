@@ -35,4 +35,9 @@ hooks = [
     'pattern': '.',
     'action': ['python3', 'src/tools/download_engine.py'],
   },
+  {
+    'name': 'Generate Tizen sysroots',
+    'pattern': '.',
+    'action': ['python3', 'src/tools/generate_sysroot.py', '-q'],
+  }
 ]
