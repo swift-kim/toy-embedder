@@ -21,7 +21,7 @@ jobs:
         run: |
           pip3 install requests
           gclient config --name=src --unmanaged https://github.com/${{ github.repository }}
-          gclient sync -v --no-history --shallow
+          gclient sync -v --no-history --shallow --nohooks
 
       - name: Verify C/C++ formatting
         working-directory: src
