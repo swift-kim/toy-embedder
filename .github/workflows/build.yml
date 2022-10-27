@@ -24,11 +24,15 @@ jobs:
         with:
           path: src
 
+      - uses: actions/cache@v3
+        with:
+          path: src/sysroot
+          key: sysroot
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y rpm2cpio cpio
-          sudo apt-get install -y binutils-arm-linux-gnueabi binutils-aarch64-linux-gnu binutils-i686-linux-gnu
+          sudo apt-get install -y rpm2cpio cpio binutils-${{ matrix.triple }}
           pip3 install requests
 
       - name: Install depot_tools
