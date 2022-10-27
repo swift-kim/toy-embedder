@@ -6,12 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flutter-tizen/tizen-tools:latest
-      credentials:
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -29,6 +24,13 @@ jobs:
         with:
           path: src
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm2cpio cpio
+          sudo apt-get install -y binutils-arm-linux-gnueabi binutils-aarch64-linux-gnu binutils-i686-linux-gnu
+          pip3 install requests
+
       - name: Install depot_tools
         run: |
           git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
@@ -36,20 +38,16 @@ jobs:
 
       - name: Run gclient sync
         run: |
-          pip3 install requests
           gclient config --name=src --unmanaged https://github.com/${{ github.repository }}
           gclient sync -v --no-history --shallow
 
       - name: Run ninja build
-        working-directory: src
         run: |
-          tools/gn \
+          src/tools/gn \
             --target-cpu ${{ matrix.arch }} \
-            --target-toolchain /tizen_tools/toolchains \
-            --target-sysroot /tizen_tools/sysroot/${{ matrix.arch }} \
-            --target-triple ${{ matrix.triple }} \
+            --target-toolchain /usr/lib/llvm-14 \
             --target-dir build
-          ninja -C out/build
+          ninja -C src/out/build
 
       - uses: actions/upload-artifact@v3
         with:
